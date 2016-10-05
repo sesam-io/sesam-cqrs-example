@@ -1,0 +1,3 @@
+Flask==0.11
+sesamclient==0.2.35
+elasticsearch==2.4.0

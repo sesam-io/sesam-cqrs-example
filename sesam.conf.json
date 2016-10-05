@@ -1,0 +1,167 @@
+[
+  {
+    "_id": "tasks",
+    "name": "Write tasks",
+    "type": "pipe",
+    "source": {
+      "type": "http_endpoint"
+    }
+  },
+  {
+    "_id": "published-tasks",
+    "name": "Read tasks",
+    "type": "pipe",
+    "source": {
+      "type": "dataset",
+      "dataset": "tasks"
+    },
+    "sink": {
+      "type": "http_endpoint"
+    }
+  },
+  {
+    "_id": "assignee-metadata",
+    "name": "Write assignee metadata",
+    "type": "pipe",
+    "source": {
+      "type": "http_endpoint"
+    }
+  },
+  {
+    "_id": "assignee",
+    "name": "Extract assignees",
+    "type": "pipe",
+    "source": {
+      "type": "dataset",
+      "dataset": "tasks"
+    },
+    "transform": {
+      "type": "dtl",
+      "dataset": "tasks",
+      "rules": {
+        "default": [
+          ["create",
+            ["apply", "assignee", "_S."]
+          ],
+          ["filter"]
+        ],
+        "assignee": [
+          ["filter",
+            ["is-not-null", "_S.assigned_to"]
+          ],
+          ["add", "_id", "_S.assigned_to"]
+        ]
+      }
+    },
+    "pump": {
+      "schedule_interval": 1
+    }
+  },
+  {
+    "_id": "tasklists-view",
+    "name": "Add list of assigned tasks",
+    "type": "pipe",
+    "source": {
+      "type": "dataset",
+      "dataset": "assignee"
+    },
+    "transform": {
+      "type": "dtl",
+      "dataset": "assignee",
+      "rules": {
+        "default": [
+          ["copy", "*"],
+          ["add", "tasks",
+            ["hops", {
+              "datasets": ["tasks t"],
+              "where": [
+                ["eq", "_S._id", "t.assigned_to"]
+              ]
+            }]
+          ]
+        ]
+      }
+    },
+    "pump": {
+      "schedule_interval": 1
+    }
+  },
+  {
+    "_id": "published-tasklists",
+    "name": "Read tasklists",
+    "type": "pipe",
+    "source": {
+      "type": "dataset",
+      "dataset": "tasklists-view"
+    },
+    "sink": {
+      "type": "http_endpoint"
+    }
+  },
+  {
+    "_id": "tasks-view",
+    "name": "Decorate with assignee metadata",
+    "type": "pipe",
+    "source": {
+      "type": "dataset",
+      "dataset": "tasks"
+    },
+    "transform": {
+      "type": "dtl",
+      "dataset": "tasks",
+      "rules": {
+        "default": [
+          ["copy", "*"],
+          ["add", "assignee_metadata",
+            ["coalesce",
+              ["hops", {
+                "datasets": ["assignee-metadata a"],
+                "where": [
+                  ["eq", "_S.assigned_to", "a._id"]
+                ]
+              }]
+            ]
+          ]
+        ]
+      }
+    },
+    "pump": {
+      "schedule_interval": 1
+    }
+  },
+  {
+    "_id": "published-tasks-view",
+    "name": "Read decorated tasks",
+    "type": "pipe",
+    "source": {
+      "type": "dataset",
+      "dataset": "tasks-view"
+    },
+    "sink": {
+      "type": "http_endpoint"
+    }
+  },
+  {
+    "_id": "elasticsearch-system",
+    "type": "system:elasticsearch",
+    "hosts": ["YOUR-IP-HERE:9200"]
+  },
+  {
+    "_id": "index-tasks",
+    "name": "Index tasks",
+    "type": "pipe",
+    "source": {
+      "type": "dataset",
+      "dataset": "tasks-view"
+    },
+    "sink": {
+      "type": "elasticsearch",
+      "system": "elasticsearch-system",
+      "default_index": "todo",
+      "default_type": "task"
+    },
+    "pump": {
+      "schedule_interval": 1
+    }
+  }
+]
