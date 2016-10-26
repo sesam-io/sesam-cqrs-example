@@ -107,9 +107,9 @@ Example interaction with the application:
 ::
 
     ## lets add a couple of tasks with assignees
-    $ curl  XPOST 'http://localhost:5000/task/1' -H "Content-type: application/json" -d @samples/task1-baard.json
-    $ curl -XPOST 'http://localhost:5000/task/2' -H "Content-type: application/json" -d @samples/task2-baard.json
-    $ curl -XPOST 'http://localhost:5000/task/3' -H "Content-type: application/json" -d @samples/task3-gramoore.json
+    $ curl -XPUT 'http://localhost:5000/task/1' -H "Content-type: application/json" -d @samples/task1-baard.json
+    $ curl -XPUT 'http://localhost:5000/task/2' -H "Content-type: application/json" -d @samples/task2-baard.json
+    $ curl -XPUT 'http://localhost:5000/task/3' -H "Content-type: application/json" -d @samples/task3-gramoore.json
     ## we can look at a task
     $ curl 'http://localhost:5000/task/1'
     {
