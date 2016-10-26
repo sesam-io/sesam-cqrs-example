@@ -39,6 +39,8 @@ in `graph database <https://en.wikipedia.org/wiki/Graph_database>`_, but your ac
 Sesam has builtin support for reading RDF (graph structure), and you can write adapters for other graph databases. Sesam can then combine the multiple data models into
 one read model that you can use for querying the combined data structure.
 
+You can also think of this example as a `realtime reporting database <http://martinfowler.com/bliki/ReportingDatabase.html>`_.
+
 The "TODO" API example
 ======================
 
